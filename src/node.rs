@@ -4,6 +4,7 @@ use crate::{SmiNodeKind, RenderFlags};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
+use std::slice;
 use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::fmt;
@@ -43,11 +44,11 @@ pub struct TextualConvention<'a> {
     pub reference: &'a str,
 }
 impl<'a> TextualConvention<'a> {
-    unsafe fn from_ptr(this: *mut smi::SmiType) -> TextualConvention<'a> {
+    pub unsafe fn from_ptr(this: *mut smi::SmiType) -> TextualConvention<'a> {
         let t = *this;
         let name = cstr_from_ptr(t.name);
         let basetype = t.basetype;
-        let status = FromPrimitive::from_u32(t.status).unwrap_or(SmiStatus::Unknown);
+        let status = FromPrimitive::from_i32(t.status).unwrap_or(SmiStatus::Unknown);
         let format = cstr_from_ptr(t.format);
         let units = cstr_from_ptr(t.units);
         let description = cstr_from_ptr(t.description);
@@ -63,6 +64,14 @@ impl<'a> TextualConvention<'a> {
             description,
             reference
         }
+    }
+
+    pub unsafe fn named_numbers(self) -> Map<i32, String> {
+
+    }
+
+    pub unsafe fn range(self) -> (Min, Max) {
+
     }
 }
 
@@ -96,13 +105,13 @@ unsafe fn cstr_from_ptr<'a>(s: *mut std::os::raw::c_char) -> &'a str {
 }
 
 impl<'a> SmiNode<'a> {
-    unsafe fn from_ptr(this: *mut smi::SmiNode) -> SmiNode<'a> {
+    pub unsafe fn from_ptr(this: *mut smi::SmiNode) -> SmiNode<'a> {
         let t = *this;
         let name = cstr_from_ptr(t.name);
         let oid: &[u32] = slice::from_raw_parts(t.oid, t.oidlen.try_into().unwrap());
         let format = cstr_from_ptr(t.format);
-        let access = FromPrimitive::from_u32(t.access).unwrap_or(SmiAccess::Unknown);
-        let status = FromPrimitive::from_u32(t.status).unwrap_or(SmiStatus::Unknown);
+        let access = FromPrimitive::from_i32(t.access).unwrap_or(SmiAccess::Unknown);
+        let status = FromPrimitive::from_i32(t.status).unwrap_or(SmiStatus::Unknown);
         let units = cstr_from_ptr(t.units);
         let description = cstr_from_ptr(t.description);
         let reference = cstr_from_ptr(t.reference);
@@ -143,7 +152,7 @@ impl<'a> SmiNode<'a> {
 
     pub fn qualified_name(&self) -> &str {
         unsafe {
-            cstr_from_ptr(smi::smiRenderNode(self.this, RenderFlags::QUALIFIED))
+            cstr_from_ptr(smi::smiRenderNode(self.this, RenderFlags::QUALIFIED.bits()))
         }
     }
 
@@ -167,7 +176,7 @@ impl fmt::Display for SmiNode<'_> {
             .map(u32::to_string)
             .collect::<Vec<_>>()
             .join(".");
-        write!(f, "Node<{}>/{}: {}, {}", oid_str, self.kind, self.name, self.description)
+        write!(f, "Node<{}>/{}: {}, {}", oid_str, self.kind, self.name, self.units)
     }
 }
 

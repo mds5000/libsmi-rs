@@ -1,5 +1,5 @@
 use crate::smi;
-use crate::{SmiNodeKind, RenderFlags};
+use crate::{SmiNode, SmiNodeKind, RenderFlags};
 
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;

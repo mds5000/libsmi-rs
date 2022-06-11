@@ -1,6 +1,9 @@
 extern crate pkg_config;
 
 fn main() {
+    println!("cargo:rustc-link-search=native=.");
+    println!("cargo:rustc-link-lib=static=smi");
+    /*
     if std::env::var("DOCS_RS").is_err() {
         // do not probe for libsoxr when compiling at docs.rs
         if let Err(e) = pkg_config::probe_library("libsmi") {
@@ -16,4 +19,5 @@ fn main() {
         }
         }
     }
+    */
 }
